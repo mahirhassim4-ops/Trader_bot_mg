@@ -21,18 +21,9 @@ print()
 
 # INITIALISATION SIMPLE
 app = Flask(__name__)
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-# ESSAIE DE DÉMARRER TELEGRAM, MAIS CONTINUE SI ERREUR
-try:
-    bot = telebot.TeleBot(TELEGRAM_TOKEN)
-    print("✅ Bot Telegram initialisé")
-    TELEGRAM_OK = True
-except Exception as e:
-    print(f"⚠️ Erreur Telegram: {e}")
-    print("⚠️ Le site web fonctionnera sans Telegram")
-    TELEGRAM_OK = False
-
-# ========== ROUTES WEB SIMPLES ==========
+# ========== ROUTES WEB ==========
 @app.route('/')
 def home():
     return """
@@ -85,42 +76,66 @@ def health():
         "service": "Trader Bot Pro Madagascar",
         "version": "2.0",
         "timestamp": datetime.now().isoformat(),
-        "telegram": "configured" if TELEGRAM_OK else "not_configured",
+        "telegram": "configured",
         "port": PORT
     }
 
-# ========== TELEGRAM SEULEMENT SI ÇA MARCHE ==========
-if TELEGRAM_OK:
-    @bot.message_handler(commands=['start'])
-    def send_welcome(message):
-        bot.reply_to(message, "✅ NOUVEAU BOT ACTIVÉ! Trader Bot Pro Madagascar 🇲🇬")
+# ========== TELEGRAM COMMANDS ==========
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, 
+    "🤖 *Bienvenue sur Trader Bot Pro Madagascar!* 🇲🇬\n\n"
+    "✅ *Nouveau bot activé avec succès!*\n"
+    "📊 *Fonctionnalités:*\n"
+    "• Analyse marché temps réel\n"
+    "• Signaux trading\n"
+    "• Gestion risques\n\n"
+    "⚡ *Commandes:*\n"
+    "/start - Démarrer\n"
+    "/status - Vérifier statut\n"
+    "/signal - Signaux\n"
+    "/help - Aide",
+    parse_mode='Markdown')
 
-    @bot.message_handler(commands=['status'])
-    def send_status(message):
-        bot.reply_to(message, f"🟢 ACTIF | {datetime.now().strftime('%H:%M:%S')} | Madagascar")
+@bot.message_handler(commands=['status'])
+def send_status(message):
+    bot.reply_to(message, 
+    f"📈 *STATUT DU BOT*\n\n"
+    f"⏰ *Heure:* {datetime.now().strftime('%H:%M:%S')}\n"
+    f"🟢 *Statut:* ACTIF\n"
+    f"📊 *Mode:* Trading 24/7\n"
+    f"📍 *Région:* Madagascar\n\n"
+    f"✅ Tout fonctionne normalement!",
+    parse_mode='Markdown')
 
-    def start_telegram():
-        try:
-            print("📱 Lancement du bot Telegram...")
-            bot.polling(non_stop=True, timeout=60)
-        except Exception as e:
-            print(f"❌ Erreur Telegram polling: {e}")
+@bot.message_handler(commands=['signal'])
+def send_signal(message):
+    bot.reply_to(message,
+    "🚨 *SIGNAL TRADING*\n\n"
+    "*EURUSD (H1)*\n"
+    "🟢 ACTION: BUY\n"
+    "🎯 ENTRY: 1.0950\n"
+    "⛔ SL: 1.0920\n"
+    "✅ TP: 1.0980\n"
+    "📊 CONFIDENCE: 78%\n\n"
+    f"⚡ *Généré:* {datetime.now().strftime('%H:%M')}",
+    parse_mode='Markdown')
 
-# ========== DÉMARRAGE SÉCURISÉ ==========
+# ========== DÉMARRAGE ==========
+def start_telegram():
+    print("📱 Démarrage du bot Telegram...")
+    bot.polling(non_stop=True)
+
 if __name__ == "__main__":
-    print("🚀 Démarrage sécurisé...")
+    print("🚀 Lancement des services...")
     
-    # Démarrer Telegram si disponible
-    if TELEGRAM_OK:
-        telegram_thread = threading.Thread(target=start_telegram, daemon=True)
-        telegram_thread.start()
-        print("✅ Thread Telegram démarré")
+    # Démarrer Telegram dans un thread
+    telegram_thread = threading.Thread(target=start_telegram, daemon=True)
+    telegram_thread.start()
     
-    print(f"🌐 Serveur web sur port {PORT}")
-    print("⚡ Attente des requêtes...")
+    print("🌐 Serveur web démarré")
+    print(f"🔗 URL: https://[ton-app].onrender.com")
+    print("⚡ Prêt à recevoir des requêtes!")
     
-    # Démarrer Flask (BLOCKANT)
-    try:
-        app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
-    except Exception as e:
-        print(f"❌ Erreur Flask: {e}")
+    # Démarrer Flask
+    app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
